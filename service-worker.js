@@ -1,18 +1,8 @@
 self.addEventListener("notificationclick", function (event) {
+    if (event.action === "confirm") {
+        console.log(`Pengguna melakukan ${event.notification.data.type}.`);
+    } else if (event.action === "dismiss") {
+        console.log(`Pengguna menunda ${event.notification.data.type}.`);
+    }
     event.notification.close();
-
-    event.waitUntil(
-        clients.matchAll({ type: "window", includeUncontrolled: true }).then(clientList => {
-            if (event.action === "play") {
-                if (clientList.length > 0) {
-                    clientList[0].focus();
-                    clientList[0].navigate("/play");
-                } else {
-                    clients.openWindow("/play");
-                }
-            } else {
-                console.log("Pengguna menutup notifikasi.");
-            }
-        })
-    );
 });

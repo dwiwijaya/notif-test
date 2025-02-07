@@ -3,10 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Push Notification</title>
+    <title>Notifikasi Absensi</title>
 </head>
 <body>
-    <button id="notifyBtn">Tampilkan Notifikasi</button>
+    <button id="notifyBtn">Tampilkan Notifikasi Manual</button>
 
     <script>
         if (!("Notification" in window) || !("serviceWorker" in navigator)) {
@@ -19,17 +19,22 @@
             .catch(err => console.error("Pendaftaran gagal", err));
 
         // Fungsi untuk menampilkan notifikasi lewat Service Worker
-        function showNotification() {
+        function showNotification(type) {
             Notification.requestPermission().then(permission => {
                 if (permission === "granted") {
                     navigator.serviceWorker.getRegistration().then(reg => {
                         if (reg) {
-                            reg.showNotification("Lazyplay", {
-                                body: "Ada lagu baru di antrean, mau putar sekarang?",
-                                icon: "/icon.png",
+                            const title = type === "checkin" ? "Waktunya Check-in" : "Waktunya Check-out";
+                            const body = type === "checkin" 
+                                ? "Silakan lakukan check-in sekarang." 
+                                : "Silakan lakukan check-out sekarang.";
+
+                            reg.showNotification(title, {
+                                body: body,
+                                data: { type: type },
                                 actions: [
-                                    { action: "play", title: "Putar Sekarang" },
-                                    { action: "dismiss", title: "Nanti Saja" }
+                                    { action: "confirm", title: "OK, Check-in" },
+                                    { action: "dismiss", title: "Nanti" }
                                 ]
                             });
                         }
@@ -38,7 +43,30 @@
             });
         }
 
-        document.getElementById("notifyBtn").addEventListener("click", showNotification);
+        document.getElementById("notifyBtn").addEventListener("click", () => showNotification("checkin"));
+
+        // Fungsi untuk menjadwalkan notifikasi otomatis
+        function scheduleNotification(hour, minute, type) {
+            const now = new Date();
+            const targetTime = new Date();
+
+            targetTime.setHours(hour, minute, 0, 0);
+            if (targetTime <= now) {
+                targetTime.setDate(targetTime.getDate() + 1);
+            }
+
+            const delay = targetTime - now;
+            console.log(`Notifikasi ${type} dijadwalkan dalam ${Math.round(delay / 1000 / 60)} menit`);
+
+            setTimeout(() => {
+                showNotification(type);
+                scheduleNotification(hour, minute, type); // Reschedule untuk besok
+            }, delay);
+        }
+
+        // Atur notifikasi otomatis (ubah sesuai kebutuhan)
+        scheduleNotification(8, 0, "checkin");  // Notifikasi Check-in pukul 08:00
+        scheduleNotification(17, 0, "checkout"); // Notifikasi Check-out pukul 17:00
     </script>
 </body>
 </html>
