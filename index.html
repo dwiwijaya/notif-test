@@ -18,17 +18,21 @@
             .then(reg => console.log("Service Worker terdaftar!", reg.scope))
             .catch(err => console.error("Pendaftaran gagal", err));
 
-        // Fungsi untuk menampilkan notifikasi tanpa push server
+        // Fungsi untuk menampilkan notifikasi lewat Service Worker
         function showNotification() {
             Notification.requestPermission().then(permission => {
                 if (permission === "granted") {
-                    new Notification("Lazyplay", {
-                        body: "Ada lagu baru di antrean, mau putar sekarang?",
-                        icon: "/icon.png", // Tambahkan ikon agar lebih menarik
-                        actions: [
-                            { action: "play", title: "Putar Sekarang" },
-                            { action: "dismiss", title: "Nanti Saja" }
-                        ]
+                    navigator.serviceWorker.getRegistration().then(reg => {
+                        if (reg) {
+                            reg.showNotification("Lazyplay", {
+                                body: "Ada lagu baru di antrean, mau putar sekarang?",
+                                icon: "/icon.png",
+                                actions: [
+                                    { action: "play", title: "Putar Sekarang" },
+                                    { action: "dismiss", title: "Nanti Saja" }
+                                ]
+                            });
+                        }
                     });
                 }
             });
