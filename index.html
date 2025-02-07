@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Push Notification</title>
+</head>
+<body>
+    <button id="notifyBtn">Tampilkan Notifikasi</button>
+
+    <script>
+        // Periksa apakah browser mendukung Notification API dan Service Worker
+        if (!("Notification" in window) || !("serviceWorker" in navigator)) {
+            alert("Browser tidak mendukung notifikasi atau Service Worker.");
+        }
+
+        // Daftarkan Service Worker
+        navigator.serviceWorker.register("service-worker.js")
+            .then(reg => console.log("Service Worker terdaftar!", reg))
+            .catch(err => console.error("Pendaftaran gagal", err));
+
+        // Fungsi untuk meminta izin dan mengirim notifikasi melalui Service Worker
+        function showNotification() {
+            Notification.requestPermission().then(permission => {
+                if (permission === "granted") {
+                    navigator.serviceWorker.getRegistration().then(reg => {
+                        if (reg) {
+                            reg.showNotification("Lazyplay", {
+                                body: "Ada lagu baru di antrean, mau putar sekarang?",
+                                actions: [
+                                    { action: "play", title: "Putar Sekarang" },
+                                    { action: "dismiss", title: "Nanti Saja" }
+                                ]
+                            });
+                        }
+                    });
+                }
+            });
+        }
+
+        document.getElementById("notifyBtn").addEventListener("click", showNotification);
+    </script>
+</body>
+</html>
